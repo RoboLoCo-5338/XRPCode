@@ -77,6 +77,7 @@ class MODMANAGER{
         if(this.WAITING_FOR_USER==0){
             localStorage.setItem("installedMods", JSON.stringify(this.INSTALL_SELECT.value));
         }
+        return this.INSTALL_SELECT.value;
     }
 }
 const mods = [
