@@ -1,4 +1,3 @@
-import { Octokit, App } from "octokit";
 //Created using https://www.cssscript.com/multi-select-tree/
 class MODMANAGER {
   constructor() {
@@ -82,65 +81,76 @@ class MODMANAGER {
     }
     return this.INSTALL_SELECT.value;
   }
+  /**
+   * Adds mods from github page
+   */
   async addMods() {
     //Creates Treeselect for available mods
-    const octokit = new Octokit();
-    let tree_SHA = await octokit.request("GET /repos/{owner}/{repo}/contents/mods?ref=mod_manager",{
-        owner: "Roboloco-5338",
-        repo: "XRPCode",
-        headers: {
-        "X-GitHub-Api-Version": "2022-11-28",
-        },
-    })[0].sha;
-    let modlist = await octokit.request("GET /repos/{owner}/{repo}/git/trees/{tree_sha}?recursive=1", {
-      owner: "RoboLoco-5338",
-      repo: "XRPCode",
-      tree_sha: tree_SHA,
-      headers: {
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    });
+    let shaReq = await fetch(
+            "https://api.github.com/repos/Roboloco-5338/XRPCode/contents?ref=mod_manager",
+            {
+              method: "GET",
+              headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
+                "Accept": "application/vnd.github+json"
+              },
+            }
+          );
+          // .then((value) => value.json().then((value) => console.log(value)));
     
+    let shas = await shaReq.json();
+    let tree_SHA = shas.find((element) => element.name == "mods").sha;
+
+    let modListReq = await fetch(
+            `https://api.github.com/repos/Roboloco-5338/XRPCode/git/trees/${tree_SHA}?recursive=1`,
+            {
+              method: "GET",
+              headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
+              },
+            }
+          );
+    let modlist=(await modListReq.json()).tree;
+
+    let selectableMods = [];
+    modlist
+      .filter((element) => !element.path.includes("blocks.js"))
+      .forEach((element) => {
+        let tempPointer = selectableMods;
+        let elementPath = element.path;
+        while (elementPath.includes("/")) {
+          console.log(tempPointer);
+          console.log(elementPath);
+          if (
+            tempPointer.find(
+              (alreadyExistingMods) =>
+                alreadyExistingMods.name ===
+                elementPath.substring(0, elementPath.indexOf("/"))
+            ) === undefined
+          ) {
+            tempPointer.push({
+              name: elementPath.substring(0, elementPath.indexOf("/")),
+              value: elementPath.substring(0, elementPath.indexOf("/")),
+              children: [],
+            });
+          }
+          tempPointer = tempPointer.find(
+            (mod) =>
+              mod.name === elementPath.substring(0, elementPath.indexOf("/"))
+          ).children;
+          elementPath = elementPath.substring(elementPath.indexOf("/")+1);
+        }
+        tempPointer.push({
+          name: elementPath,
+          value: elementPath,
+          children: [],
+        });
+      });
     this.INSTALL_SELECT = new Treeselect({
       parentHtmlContainer: this.INSTALL_SELECT_DIV,
-      options: mods,
+      options: selectableMods,
       alwaysOpen: true,
       value: JSON.parse(localStorage.getItem("installedMods")),
     });
   }
 }
-const mods = [
-  {
-    name: "Sensors",
-    value: "Sensors",
-    children: [
-      {
-        name: "A3144 Hall Effect Sensor",
-        value: "A3144 Hall Effect Sensor",
-        children: [],
-      },
-    ],
-  },
-  {
-    name: "Displays",
-    value: "Displays",
-    children: [
-      {
-        name: "Zio Qwiic OLED Display",
-        value: "Zio Qwiic OLED Display",
-        children: [],
-      },
-    ],
-  },
-  {
-    name: "Audio",
-    value: "Audio",
-    children: [
-      {
-        name: "Qwiic Buzzer",
-        value: "Qwiic Buzzer",
-        children: [],
-      },
-    ],
-  },
-];
