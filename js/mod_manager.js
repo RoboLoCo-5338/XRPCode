@@ -73,7 +73,6 @@ class MODMANAGER {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     this.MOD_MANAGER_DIV.style.display = "none";
-    let alreadyInstalled = JSON.parse(localStorage.getItem("installedMods"));
     if (this.WAITING_FOR_USER == 0) {
       localStorage.setItem(
         "installedMods",
@@ -150,6 +149,7 @@ class MODMANAGER {
       alwaysOpen: true,
       value: JSON.parse(localStorage.getItem("installedMods")),
     });
+    this.downloadMods(JSON.parse(localStorage.getItem("installedMods")));
   }
 
   async downloadMods(selectedMods){
@@ -166,6 +166,7 @@ class MODMANAGER {
       document.head.appendChild(python_js);
       let toolboxJson = JSON.parse(atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/toolbox.json?ref=mod_manager`)).json()).content));
       toolboxJson.contents.forEach((element) => {
+        this.addMod(element, blocklyToolbox.contents);
       });
     }
   }
