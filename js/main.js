@@ -16,7 +16,7 @@ var myLayout = new GoldenLayout(document.getElementById("IDLayoutContainer"));
 var DIR = new DIRCHOOSER();
 var SAVEAS_ELEMENT = document.getElementById("IDSaveAs");  //element to use with the SaveAs dialog box.
 var MOD_MANAGER = new MODMANAGER();
-await MOD_MANAGER.addMods();
+await MOD_MANAGER.loadModList();
 
 var onExportToEditor = (bytes) => {
     var editorSpriteID = 0;
@@ -286,6 +286,8 @@ document.getElementById("IDModInstall").onclick = async (event) =>{
     UIkit.dropdown(FILE_DROPDOWN).hide();
     MOD_MANAGER.show(document.getElementById("IDModManager"));
     let mods = await MOD_MANAGER.userExit();
+    console.log(mods);
+    await MOD_MANAGER.downloadMods(mods);
 }
 
 // View Menu Support

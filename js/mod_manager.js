@@ -73,6 +73,7 @@ class MODMANAGER {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     this.MOD_MANAGER_DIV.style.display = "none";
+    let alreadyInstalled = JSON.parse(localStorage.getItem("installedMods"));
     if (this.WAITING_FOR_USER == 0) {
       localStorage.setItem(
         "installedMods",
@@ -84,7 +85,7 @@ class MODMANAGER {
   /**
    * Adds mods from github page
    */
-  async addMods() {
+  async loadModList() {
     //Creates Treeselect for available mods
     let shaReq = await fetch(
             "https://api.github.com/repos/Roboloco-5338/XRPCode/contents?ref=mod_manager",
@@ -96,7 +97,6 @@ class MODMANAGER {
               },
             }
           );
-          // .then((value) => value.json().then((value) => console.log(value)));
     
     let shas = await shaReq.json();
     let tree_SHA = shas.find((element) => element.name == "mods").sha;
@@ -114,13 +114,11 @@ class MODMANAGER {
 
     let selectableMods = [];
     modlist
-      .filter((element) => !element.path.includes("blocks.js"))
+      .filter((element) => element.path.length>=3 && element.path.substring(element.path.length-3) !== ".js")
       .forEach((element) => {
         let tempPointer = selectableMods;
         let elementPath = element.path;
         while (elementPath.includes("/")) {
-          console.log(tempPointer);
-          console.log(elementPath);
           if (
             tempPointer.find(
               (alreadyExistingMods) =>
@@ -142,7 +140,7 @@ class MODMANAGER {
         }
         tempPointer.push({
           name: elementPath,
-          value: elementPath,
+          value: element.path.replace(" ", "%20"),
           children: [],
         });
       });
@@ -152,5 +150,38 @@ class MODMANAGER {
       alwaysOpen: true,
       value: JSON.parse(localStorage.getItem("installedMods")),
     });
+  }
+
+  async downloadMods(selectedMods){
+    for(let mod of selectedMods){
+      let blocks = atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/blocks.js?ref=mod_manager`)).json()).content);
+      let block_js = document.createElement("script");
+      block_js.textContent=blocks;
+      document.head.appendChild(block_js);
+
+      let python = atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/python_blocks.js?ref=mod_manager`)).json()).content);
+
+      let python_js = document.createElement("script");
+      python_js.textContent=python;
+      document.head.appendChild(python_js);
+      let toolboxJson = JSON.parse(atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/toolbox.json?ref=mod_manager`)).json()).content));
+      toolboxJson.contents.forEach((element) => {
+      });
+    }
+  }
+  addMod(mod, toolboxPointer){
+    if(mod.kind=="CATEGORY"){
+      if(toolboxPointer.find((element)=>element.kind=="CATEGORY" && element.name==mod.name)==undefined){
+        toolboxPointer.push(mod);
+      }
+      mod.contents.forEach((element)=>{
+        this.addMod(element, toolboxPointer.find((element)=>element.kind=="CATEGORY" && element.name==mod.name).contents);
+      });
+    }
+    else{
+      if(toolboxPointer.find((element)=>element.name==mod.name)==undefined){
+        toolboxPointer.push(mod);
+      }
+    }
   }
 }
