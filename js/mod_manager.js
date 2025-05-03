@@ -114,7 +114,7 @@ class MODMANAGER {
 
     let selectableMods = [];
     modlist
-      .filter((element) => element.path.length>=3 && element.path.substring(element.path.length-3) !== ".js")
+      .filter((element) => element.path.length>=3 && element.path.substring(element.path.length-3) !== ".js" && element.path.substring(element.path.length-5) !== ".json")
       .forEach((element) => {
         let tempPointer = selectableMods;
         let elementPath = element.path;
