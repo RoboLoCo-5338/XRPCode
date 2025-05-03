@@ -1,4 +1,3 @@
-const PY = Blockly.Python;
 //Pesto Link Controller: Credit Kavin Muralikrishnan FRC Team 5338 Roboloco
 Blockly.Python['pestolink_get_controller_left_x'] = function (block) {
   PY.definitions_['import_random']='import random\n ';
