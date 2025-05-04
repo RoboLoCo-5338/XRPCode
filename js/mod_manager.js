@@ -145,7 +145,7 @@ class MODMANAGER {
         });
         nameDict[elementPath]=element.path.replace(" ", "%20");
         let depReq = await fetch(
-          `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/${element.path.replace(" ", "%20")}/deps.json?ref=mod_manager`);
+          `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${element.path.replace(" ", "%20")}/deps.json?ref=mod_manager`);
         if(depReq.status==200){
           let deps = JSON.parse(atob((await depReq.json()).content));
           depDict[element.path.replace(" ", "%20")]=deps;
