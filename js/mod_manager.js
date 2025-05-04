@@ -91,7 +91,7 @@ class MODMANAGER {
             {
               method: "GET",
               headers: {
-                "X-GitHub-Api-Version": "2022-11-28",
+                "X-GitHub-Api-Version": "2022-11-28", 
                 "Accept": "application/vnd.github+json"
               },
             }
@@ -105,7 +105,7 @@ class MODMANAGER {
             {
               method: "GET",
               headers: {
-                "X-GitHub-Api-Version": "2022-11-28",
+                "X-GitHub-Api-Version": "2022-11-28", 
               },
             }
           );
@@ -145,7 +145,13 @@ class MODMANAGER {
         });
         nameDict[elementPath]=element.path.replace(" ", "%20");
         let depReq = await fetch(
-          `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${element.path.replace(" ", "%20")}/deps.json?ref=mod_manager`);
+          `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${element.path.replace(" ", "%20")}/deps.json?ref=mod_manager`,         {
+          method: "GET",
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28", 
+            "Accept": "application/vnd.github+json"
+          },
+        });
         if(depReq.status==200){
           let deps = JSON.parse(atob((await depReq.json()).content));
           depDict[element.path.replace(" ", "%20")]=deps;
@@ -173,17 +179,35 @@ class MODMANAGER {
 
   async downloadMods(selectedMods){
     for(let mod of selectedMods){
-      let blocks = atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/blocks.js?ref=mod_manager`)).json()).content);
+      let blocks = atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/blocks.js?ref=mod_manager`,         {
+          method: "GET",
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28", 
+            "Accept": "application/vnd.github+json"
+          },
+        })).json()).content);
       let block_js = document.createElement("script");
       block_js.textContent=blocks;
       document.head.appendChild(block_js);
 
-      let python = atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/python_blocks.js?ref=mod_manager`)).json()).content);
+      let python = atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/python_blocks.js?ref=mod_manager`,         {
+          method: "GET",
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28", 
+            "Accept": "application/vnd.github+json"
+          },
+        })).json()).content);
 
       let python_js = document.createElement("script");
       python_js.textContent=python;
       document.head.appendChild(python_js);
-      let toolboxJson = JSON.parse(atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/toolbox.json?ref=mod_manager`)).json()).content));
+      let toolboxJson = JSON.parse(atob((await (await fetch(`https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/toolbox.json?ref=mod_manager`,         {
+          method: "GET",
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28", 
+            "Accept": "application/vnd.github+json"
+          },
+        })).json()).content));
       toolboxJson.contents.forEach((element) => {
         this.addMod(element, blocklyToolbox.contents);
       });
@@ -217,13 +241,13 @@ class MODMANAGER {
         {
           method: "GET",
           headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
+            "X-GitHub-Api-Version": "2022-11-28", 
             "Accept": "application/vnd.github+json"
           },
         }
       );
       if(modReq.status==200){
-        let modFiles = await modReq.json().entries;
+        let modFiles = await modReq.json();
         this.installDepDir(repl, modFiles);
       }
     }
@@ -233,31 +257,31 @@ class MODMANAGER {
     for(let file of dirContents){
       if(file.type=="dir"){
         let dirReq = await fetch(
-          `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${file.name}/?ref=mod_manager`,
+          file.url,
           {
             method: "GET",
             headers: {
-              "X-GitHub-Api-Version": "2022-11-28",
+              "X-GitHub-Api-Version": "2022-11-28", 
               "Accept": "application/vnd.github+json"
             },
           }
         );
-        let dirContents = await dirReq.json().entries;
+        let dirContents = await dirReq.json();
         await this.installDepDir(repl, dirContents);
       }
       else{
         let fileReq = await fetch(
-          `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${file.name}?ref=mod_manager`,
+          file.url,
           {
             method: "GET",
             headers: {
-              "X-GitHub-Api-Version": "2022-11-28",
+              "X-GitHub-Api-Version": "2022-11-28", 
               "Accept": "application/vnd.github+json"
             },
           }
         );
         let fileContent = await fileReq.json();
-        await repl.uploadFile("lib/" + fileContent.path, atob(fileContent.content));
+        await repl.uploadFile("lib/mods/" + fileContent.path.substring(fileContent.path.indexOf("deps")+4), atob(fileContent.content));
       }
     }
   }
