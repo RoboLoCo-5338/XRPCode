@@ -115,7 +115,7 @@ class MODMANAGER {
     let nameDict = {};
     let depDict = {};
     for(let element of modlist
-      .filter((file) => (file.path.length<3 || file.path.substring(file.path.length-3) !== ".js") && (file.path.length<5 || file.path.substring(file.path.length-5) !== ".json"))){
+      .filter((file) => !file.path.includes("."))){ //Filter out files that are not directories
         let tempPointer = selectableMods;
         let elementPath = element.path;
         while (elementPath.includes("/")) {
