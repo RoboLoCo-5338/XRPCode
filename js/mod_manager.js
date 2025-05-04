@@ -112,9 +112,10 @@ class MODMANAGER {
     let modlist=(await modListReq.json()).tree;
 
     let selectableMods = [];
-    modlist
-      .filter((element) => element.path.length>=3 && element.path.substring(element.path.length-3) !== ".js" && element.path.substring(element.path.length-5) !== ".json")
-      .forEach((element) => {
+    let nameDict = {};
+    let depDict = {};
+    for(let element of modlist
+      .filter((file) => (file.path.length<3 || file.path.substring(file.path.length-3) !== ".js") && (file.path.length<5 || file.path.substring(file.path.length-5) !== ".json"))){
         let tempPointer = selectableMods;
         let elementPath = element.path;
         while (elementPath.includes("/")) {
@@ -142,13 +143,31 @@ class MODMANAGER {
           value: element.path.replace(" ", "%20"),
           children: [],
         });
-      });
+        nameDict[elementPath]=element.path.replace(" ", "%20");
+        let depReq = await fetch(
+          `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/${element.path.replace(" ", "%20")}/deps.json?ref=mod_manager`);
+        if(depReq.status==200){
+          let deps = JSON.parse(atob((await depReq.json()).content));
+          depDict[element.path.replace(" ", "%20")]=deps;
+        }
+      }
     this.INSTALL_SELECT = new Treeselect({
       parentHtmlContainer: this.INSTALL_SELECT_DIV,
       options: selectableMods,
       alwaysOpen: true,
       value: JSON.parse(localStorage.getItem("installedMods")),
     });
+    this.INSTALL_SELECT.srcElement.addEventListener("input", (e) => {
+      for(let element of this.INSTALL_SELECT.value){
+        if(depDict[element]!==undefined){
+          for(let dep of depDict[element]){
+            this.INSTALL_SELECT.value.push(nameDict[dep]);
+          }
+        }
+      }
+      this.INSTALL_SELECT.mount();
+    });
+
     this.downloadMods(JSON.parse(localStorage.getItem("installedMods")));
   }
 
@@ -184,5 +203,9 @@ class MODMANAGER {
         toolboxPointer.push(mod);
       }
     }
+  }
+
+  async clearModDeps(repl){
+    repl.deleteFileOrDir("/lib/mods/")
   }
 }
