@@ -206,6 +206,59 @@ class MODMANAGER {
   }
 
   async clearModDeps(repl){
-    repl.deleteFileOrDir("/lib/mods/")
+    await repl.deleteFileOrDir("/lib/mods/")
+  }
+
+  async installDepsToXRP(repl, selectedMods){
+    await this.clearModDeps(repl);
+    for(let mod of selectedMods){
+      let modReq = await fetch(
+        `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${mod}/deps?ref=mod_manager`,
+        {
+          method: "GET",
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28",
+            "Accept": "application/vnd.github+json"
+          },
+        }
+      );
+      if(modReq.status==200){
+        let modFiles = await modReq.json().entries;
+        this.installDepDir(repl, modFiles);
+      }
+    }
+  }
+
+  async installDepDir(repl, dirContents){
+    for(let file of dirContents){
+      if(file.type=="dir"){
+        let dirReq = await fetch(
+          `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${file.name}/?ref=mod_manager`,
+          {
+            method: "GET",
+            headers: {
+              "X-GitHub-Api-Version": "2022-11-28",
+              "Accept": "application/vnd.github+json"
+            },
+          }
+        );
+        let dirContents = await dirReq.json().entries;
+        await this.installDepDir(repl, dirContents);
+      }
+      else{
+        let fileReq = await fetch(
+          `https://api.github.com/repos/Roboloco-5338/XRPCode/contents/mods/${file.name}?ref=mod_manager`,
+          {
+            method: "GET",
+            headers: {
+              "X-GitHub-Api-Version": "2022-11-28",
+              "Accept": "application/vnd.github+json"
+            },
+          }
+        );
+        let fileContent = await fileReq.json();
+        await repl.uploadFile("lib/" + fileContent.path, atob(fileContent.content));
+      }
+    }
   }
 }

@@ -297,6 +297,9 @@ document.getElementById("IDModInstall").onclick = async (event) =>{
     let mods = await MOD_MANAGER.userExit();
     console.log(mods);
     await MOD_MANAGER.downloadMods(mods);
+    if(REPL.DISCONNECT == false){
+        await MOD_MANAGER.installDepsToXRP(REPL, mods);
+    }
 }
 
 // View Menu Support
